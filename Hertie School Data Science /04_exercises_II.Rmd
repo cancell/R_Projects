@@ -1,0 +1,355 @@
+---
+title: "Introduction to R Programming"
+subtitle: "Exercises II"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+![](https://ds3.ai/2022/assets/r.png)
+
+**Now it's your turn to write some R code!**
+
+<img src="https://media1.tenor.com/images/72bf7922ac0b07b2f7f8f630e4ae01d2/tenor.gif?itemid=11364811" style="width: 50%"/>
+
+The following includes a list of exercises that you can complete on your
+own.
+
+We are going to use the `palmerpenguins` data set for the tasks ahead!
+
+![](https://github.com/allisonhorst/palmerpenguins/raw/master/man/figures/lter_penguins.png)
+
+![](https://github.com/allisonhorst/palmerpenguins/raw/master/man/figures/culmen_depth.png)
+
+## Functions reference list
+
+For reference, here is a list of some useful functions.
+
+If you have trouble with any of these functions, try reading the
+documentation with `?function_name`
+
+Remember: all these functions take the **data** first.
+
+-   `filter()`
+
+    -   Subset rows using column values
+
+-   `mutate()`
+
+    -   Create and modify delete columns
+
+-   `rename()`
+
+    -   Rename columns
+
+-   `select()`
+
+    -   Subset columns using their names and types
+
+-   `summarise()`; `summarize()`
+
+    -   Summarise each group to fewer rows
+
+-   `group_by()`; `ungroup()`
+
+    -   Group by one or more variables
+
+-   `arrange()`
+
+    -   Arrange rows by column values
+
+-   `count()`; `tally()`
+
+    -   Count observations by group
+
+-   `distinct()`
+
+    -   Subset distinct/unique rows
+
+-   `pull()`
+
+    -   Extract a single column
+
+-   `ifelse()`
+
+    -   useful for coding of binary variables
+
+-   `case_when()`
+
+    -   useful for recoding (when `ifelse` is not enough)
+
+-   `separate()`
+
+    -   separate two variables by some separator
+
+-   `pivot_wider()`
+
+    -   turn data into wide format
+
+-   `pivot_longer()`
+
+    -   turn data into long format
+
+## Task 1
+
+Load the `tidyverse` and `janitor` packages.
+
+> If `tidyverse` or `janitor` packages are not installed yet (it will
+> say `[package] not found`). Your first task, is then to install them.
+> Note: this might take you a little bit of time.
+
+```{r}
+library(janitor)
+library(tidyverse)
+```
+
+## Task 2
+
+Read in the already cleaned `palmerpenguins` data set using
+
+-   `read_csv`
+-   the following URL:
+    <https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/inst/extdata/penguins.csv>
+
+Assign the resulting data to `penguins`.
+
+Then take a look a look at it using `glimpse`.
+
+```{r}
+penguins <- read_csv("https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/inst/extdata/penguins.csv")
+penguins
+
+```
+
+```{r}
+glimpse(penguins)
+
+```
+
+What kind of variables can you recognize?
+
+*Response:*
+
+## Task 3
+
+Only keep the variables: `species`, `island` and `sex`.
+
+```{r}
+
+select(penguins, species, island,sex)
+
+```
+
+Only keep variables 2 to 4.
+
+```{r}
+
+select(penguins, 2:4)
+
+```
+
+Remove the column `year`.
+
+```{r}
+
+select(penguins, -year)
+
+```
+
+Only include columns that contain "mm" in the variable name.
+
+```{r}
+
+select(penguins, contains("mm"))
+
+```
+
+## Task 4
+
+Rename `island` to `location`.
+
+```{r}
+
+pg <- rename(penguins, location=island)
+pg
+
+```
+
+## Task 5
+
+Filter the data so that `species` only includes `Chinstrap`.
+
+```{r}
+
+filter(penguins, species == "Chinstrap")
+
+```
+
+Filter the data so that `species` only includes `Chinstrap` or `Gentoo`.
+
+```{r}
+
+filter(penguins, species=="Chinstrap" | species=="Gentoo")
+
+```
+
+Filter the data so it includes only penguins that are `male` *and* of
+the species `Adelie`.
+
+```{r}
+
+filter(penguins, sex=="male" & species=="Adelie")
+
+```
+
+## Task 6
+
+Create three new variables that calculates `bill_length_mm` and
+`bill_depth_mm` and `flipper_length_mm` from millimeter to centimeter.
+
+Tip: divide the length value by 10.
+
+```{r}
+pg <- group_by(penguins, bill_length_mm, bill_depth_mm, flipper_length_mm)
+mutate(pg, convertbl_mm_tocm= bill_length_mm/10, convertbd_mm_tocm= bill_depth_mm/10, convertfl_mm_tocm= flipper_length_mm/10)
+
+```
+
+Create a new variable called `bill_depth_cat` which has two values:
+
+-   Everything above a bill depth of 18mm and 18mm itself is "high"
+-   Everything below a bill depth of 18mm is "low"
+
+```{r}
+
+pg2 <- mutate(penguins, bill_depth_cat = ifelse(bill_depth_mm>18, "high", "low"))
+select(pg2, bill_depth_mm, bill_depth_cat)
+
+```
+
+Create a new variable called `species_short`.
+
+-   `Adelie` should become `A`
+-   `Chinstrap` should become `C`
+-   `Gentoo` should become `G`
+
+```{r}
+
+pg3 <- mutate(penguins, species_short = 
+        case_when(
+          species =="Adelie" ~ "A",
+          species =="Chinstrap" ~ "C",
+          species == "Gentoo" ~ "G"
+        ))
+select(pg3, species, species_short)
+
+```
+
+## Task 7
+
+Calculate the average `body_mass_g` per `island`.
+
+```{r}
+
+groupby_island <- group_by(penguins, island)
+summarise(groupby_island, avg_bmg=mean(body_mass_g, na.rm=T))
+
+```
+
+If you haven't done so already, try using the `%>%` operator to do this.
+
+```{r}
+
+penguins %>% 
+  group_by(island) %>% 
+  summarise(avg_bmg = mean(body_mass_g , na.rm = T))
+
+```
+
+## Task 8
+
+Use the pipe operator (`%>%`) to do all the operations below.
+
+1.  Filter the `penguins` data so that it only includes `Chinstrap` or
+    `Adelie`.
+2.  Rename `sex` to `observed_sex`
+3.  Only keep the variables `species`, `observed_sex`, `bill_length_mm`
+    and `bill_depth_mm`
+4.  Calculate the ratio between `bill_length_mm` and `bill_depth_mm`
+5.  Sort the data by the highest ratio
+
+Try to create the pipe step by step and execute code as you go to see if
+it works.
+
+Once you are done, assign the data to `new_penguins`.
+
+```{r}
+new_penguins <- penguins %>% 
+  select(species, sex, bill_length_mm, bill_depth_mm) %>% 
+  filter(species == "Chinstrap" | species == "Adelie") %>% 
+  mutate(ratio = bill_length_mm/bill_depth_mm) %>% 
+  rename(observed_sex = sex) %>%
+  arrange(desc(ratio))
+  
+new_penguins
+
+
+```
+
+Calculate the average ratio by `species` and `sex`, again using pipes.
+
+```{r}
+new_penguins %>% 
+  group_by(species, observed_sex) %>% 
+  mutate(avg_ratio = mean(ratio, na.rm = T)) 
+
+
+```
+
+## Task 9
+
+Count the number of penguins by island and species.
+
+```{r}
+
+count(penguins, island, species, sort = T)
+
+```
+
+## Task 10
+
+Below is a dataset that needs some cleaning.
+
+Use the skills that you have learned so far to turn the data into a tidy
+dataset.
+
+```{r}
+animal_friends <- tibble(
+  Names = c("Francis", "Catniss", "Theodor", "Eugenia"),
+  TheAnimals = c("Dog", "Cat", "Hamster", "Rabbit"),
+  Sex = c("m", "f", "m", "f"),
+  a_opterr = c("me", "me", "me", "me"),
+  `Age/Adopted/Condition` = c("8/2020/Very Good", "13/2019/Wild", "1/2021/Fair", "2/2020/Good")    
+) 
+```
+
+Start here:
+
+```{r}
+
+friends_clean <- separate(animal_friends, 'Age/Adopted/Condition', sep = " \\/", into = c("Age/Adopted/Condition", "Age","Adopt","Condit"))
+
+```
+
+
+If you are done, turn the final data into long format.
+
+```{r}
+
+friends_clean
+
+```
